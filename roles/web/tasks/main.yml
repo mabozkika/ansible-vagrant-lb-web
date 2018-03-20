@@ -1,0 +1,29 @@
+---
+- name: Update and upgrade apt packages
+  apt:
+    upgrade: yes
+    update_cache: yes
+    cache_valid_time: 86400 #One day
+    
+- name: install apache2 
+  apt: name=apache2 update_cache=yes state=latest
+
+
+- name: enabled mod_rewrite
+  apache2_module: name=rewrite state=present
+  notify:
+        - restart apache2
+
+- name: create virtual host conf
+  template: src=vhost-site.conf dest=/etc/apache2/sites-available/{{ ansible_hostname }}.conf
+  
+
+- name: a2ensite
+  command: a2ensite {{ ansible_hostname }}
+  args:
+    creates: /etc/apache2/sites-enabled/{{ ansible_hostname }}.conf
+  notify:
+        - restart apache2
+
+- name: deploy website 
+  template: src=index.html dest=/var/www/html/index.html

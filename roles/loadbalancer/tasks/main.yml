@@ -1,0 +1,24 @@
+---
+- name: Update and upgrade apt packages
+  apt:
+    upgrade: yes
+    update_cache: yes
+    cache_valid_time: 86400 #One day
+
+- name: Install Nginx
+  apt: pkg=nginx state=installed update_cache=true
+  notify:
+    - Start Nginx
+
+- name: copy nginx config file
+  template:  src=nginx-load-balancer.conf dest=/etc/nginx/sites-available/default
+  notify: Restart Nginx
+
+
+- name: enable configuration
+  file: >
+    dest=/etc/nginx/sites-enabled/default
+    src=/etc/nginx/sites-available/default
+    state=link
+  notify: Restart Nginx
+
